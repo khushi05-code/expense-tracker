@@ -1,54 +1,115 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Expense Tracker</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f8;
-            max-width: 500px;
-            margin: 40px auto;
-            padding: 0 16px;
-        }
-        h1 { text-align: center; color: #222; }
-        form { display: flex; gap: 8px; margin-bottom: 20px; }
-        input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
-        button {
-            padding: 10px 16px; background: #2563eb; color: white;
-            border: none; border-radius: 6px; cursor: pointer;
-        }
-        button:hover { background: #1d4ed8; }
-        ul { list-style: none; padding: 0; }
-        li {
-            background: white; padding: 12px; margin-bottom: 8px;
-            border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .total { text-align: right; font-weight: bold; font-size: 1.2em; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Expense Tracker</title>
+<style>
+  :root {
+    --bg: #f5f7fb; --card: #ffffff; --text: #1f2937; --muted: #6b7280;
+    --primary: #4f46e5; --primary-dark: #4338ca; --danger: #ef4444; --border: #e5e7eb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f172a; --card: #1e293b; --text: #e5e7eb; --muted: #94a3b8; --border: #334155; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+         background: var(--bg); color: var(--text); }
+  .container { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
+  header h1 { margin: 0; font-size: 1.8rem; }
+  header p { color: var(--muted); margin: 4px 0 24px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .stat .label { color: var(--muted); font-size: .85rem; }
+  .stat .value { font-size: 1.6rem; font-weight: 700; margin-top: 4px; }
+  form.add { display: grid; grid-template-columns: 2fr 1fr 1.3fr 1.3fr auto; gap: 10px; }
+  @media (max-width: 700px) { form.add { grid-template-columns: 1fr 1fr; } }
+  input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px;
+                  background: var(--bg); color: var(--text); font-size: .95rem; }
+  input:focus, select:focus { outline: 2px solid var(--primary); border-color: transparent; }
+  .btn { padding: 10px 18px; border: 0; border-radius: 10px; background: var(--primary);
+         color: #fff; font-weight: 600; cursor: pointer; }
+  .btn:hover { background: var(--primary-dark); }
+  .btn.danger { background: transparent; color: var(--danger); padding: 6px 10px; border: 1px solid var(--border); }
+  .btn.danger:hover { background: var(--danger); color: #fff; }
+  h2 { font-size: 1.1rem; margin: 28px 0 12px; }
+  .cat-row { margin-bottom: 14px; }
+  .cat-row .top { display: flex; justify-content: space-between; font-size: .9rem; }
+  .bar { height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; margin-top: 6px; }
+  .bar span { display: block; height: 100%; background: var(--primary); }
+  .item { display: flex; justify-content: space-between; align-items: center;
+          padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .item:last-child { border-bottom: 0; }
+  .item .name { font-weight: 600; }
+  .item .meta { color: var(--muted); font-size: .85rem; margin-top: 4px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; margin-right: 6px;
+           background: rgba(79,70,229,.12); color: var(--primary); font-size: .75rem; font-weight: 600; }
+  .right { display: flex; align-items: center; gap: 14px; }
+  .amount { font-weight: 700; }
+  .empty { text-align: center; color: var(--muted); padding: 24px; }
+</style>
 </head>
 <body>
-    <h1>My Expenses</h1>
+<div class="container">
+  <header>
+    <h1>Expense Tracker</h1>
+    <p>Track where your money goes.</p>
+  </header>
 
-    <form method="POST" action="/add">
-        <input type="text" name="name" placeholder="What did you spend on?" required>
-        <input type="number" name="amount" placeholder="Amount" step="0.01" min="0.01" required>
-        <button type="submit">Add</button>
+  <div class="stats">
+    <div class="card stat"><div class="label">Total spent</div>
+      <div class="value">{{ currency }}{{ '%.2f'|format(total) }}</div></div>
+    <div class="card stat"><div class="label">This month</div>
+      <div class="value">{{ currency }}{{ '%.2f'|format(month_total) }}</div></div>
+    <div class="card stat"><div class="label">Expenses</div>
+      <div class="value">{{ expenses|length }}</div></div>
+  </div>
+
+  <div class="card">
+    <form class="add" method="POST" action="/add">
+      <input type="text" name="name" placeholder="What did you spend on?" required>
+      <input type="number" name="amount" placeholder="Amount" step="0.01" min="0.01" required>
+      <select name="category">
+        {% for c in categories %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+      </select>
+      <input type="date" name="date" value="{{ today }}" required>
+      <button class="btn" type="submit">Add</button>
     </form>
+  </div>
 
+  {% if by_category %}
+  <h2>Spending by category</h2>
+  <div class="card">
+    {% for cat, amt in by_category %}
+    <div class="cat-row">
+      <div class="top"><span>{{ cat }}</span><span>{{ currency }}{{ '%.2f'|format(amt) }}</span></div>
+      <div class="bar"><span style="width: {{ (amt / total * 100)|round(0) }}%"></span></div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <h2>Recent expenses</h2>
+  <div class="card">
     {% if expenses %}
-        <ul>
-               {% for id, name, amount in expenses %}
-            <li style="display:flex; justify-content:space-between; align-items:center;">
-                <span>{{ name }} - {{ amount }}</span>
-                <form method="POST" action="/delete/{{ id }}" style="margin:0;">
-                    <button type="submit" style="background:#dc2626;">Delete</button>
-                </form>
-            </li>
-        {% endfor %}
-        </ul>
-        <p class="total">Total: {{ total }}</p>
+      {% for e in expenses %}
+      <div class="item">
+        <div>
+          <div class="name">{{ e["name"] }}</div>
+          <div class="meta"><span class="badge">{{ e["category"] }}</span>{{ e["date"] or "No date" }}</div>
+        </div>
+        <div class="right">
+          <span class="amount">{{ currency }}{{ '%.2f'|format(e["amount"]) }}</span>
+          <form method="POST" action="/delete/{{ e['id'] }}" style="margin:0">
+            <button class="btn danger" type="submit">Delete</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
     {% else %}
-        <p>No expenses yet.</p>
+      <div class="empty">No expenses yet. Add your first one above.</div>
     {% endif %}
+  </div>
+</div>
 </body>
 </html>
