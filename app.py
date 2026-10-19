@@ -17,14 +17,14 @@ def init_db():
 
 def get_expenses():
     conn = sqlite3.connect("expenses.db")
-    rows = conn.execute("SELECT name, amount FROM expenses").fetchall()
+    rows = conn.execute("SELECT id, name, amount FROM expenses").fetchall()
     conn.close()
     return rows
 
 @app.route("/")
 def home():
     expenses = get_expenses()
-    total = sum(amount for name, amount in expenses)
+    total = sum(amount for id, name, amount in expenses)
     return render_template("index.html", expenses=expenses, total=total)
 
 @app.route("/add", methods=["POST"])
@@ -42,6 +42,14 @@ def add():
         )
         conn.commit()
         conn.close()
+    return redirect("/")
+
+@app.route("/delete/<int:expense_id>", methods=["POST"])
+def delete(expense_id):
+    conn = sqlite3.connect("expenses.db")
+    conn.execute("DELETE FROM expenses WHERE id = ?", (expense_id,))
+    conn.commit()
+    conn.close()
     return redirect("/")
 
 init_db()

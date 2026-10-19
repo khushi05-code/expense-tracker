@@ -3,17 +3,20 @@
 A command-line app to record and view daily expenses.
 
 ## Features
-- Add an expense with a name and amount
-- View all expenses with the total
+- Add expenses from a web form
+- View all expenses with a running total
+- Delete expenses with one click
 - Data is saved in a SQLite database, so it stays after closing the program
 - Input checks for empty names and invalid or negative amounts
 
 ## Built with
-Python and SQLite
+Python, Flask, SQLite, HTML and CSS
 
 ## How to run
 1. Install Python
-2. Run: python main.py
+2. Install Flask: pip install flask
+3. Run: python app.py
+4. Open http://127.0.0.1:5000 in your browser
 
 ## What I learned
 - How to store data permanently using SQLite instead of keeping it only in memory

@@ -2,9 +2,33 @@
 <html>
 <head>
     <title>Expense Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            max-width: 500px;
+            margin: 40px auto;
+            padding: 0 16px;
+        }
+        h1 { text-align: center; color: #222; }
+        form { display: flex; gap: 8px; margin-bottom: 20px; }
+        input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
+        button {
+            padding: 10px 16px; background: #2563eb; color: white;
+            border: none; border-radius: 6px; cursor: pointer;
+        }
+        button:hover { background: #1d4ed8; }
+        ul { list-style: none; padding: 0; }
+        li {
+            background: white; padding: 12px; margin-bottom: 8px;
+            border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .total { text-align: right; font-weight: bold; font-size: 1.2em; }
+    </style>
 </head>
 <body>
     <h1>My Expenses</h1>
+
     <form method="POST" action="/add">
         <input type="text" name="name" placeholder="What did you spend on?" required>
         <input type="number" name="amount" placeholder="Amount" step="0.01" min="0.01" required>
@@ -13,11 +37,16 @@
 
     {% if expenses %}
         <ul>
-        {% for name, amount in expenses %}
-            <li>{{ name }} - {{ amount }}</li>
+               {% for id, name, amount in expenses %}
+            <li style="display:flex; justify-content:space-between; align-items:center;">
+                <span>{{ name }} - {{ amount }}</span>
+                <form method="POST" action="/delete/{{ id }}" style="margin:0;">
+                    <button type="submit" style="background:#dc2626;">Delete</button>
+                </form>
+            </li>
         {% endfor %}
         </ul>
-        <h3>Total: {{ total }}</h3>
+        <p class="total">Total: {{ total }}</p>
     {% else %}
         <p>No expenses yet.</p>
     {% endif %}
