@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Expense Tracker</title>
+</head>
+<body>
+    <h1>My Expenses</h1>
+    <form method="POST" action="/add">
+        <input type="text" name="name" placeholder="What did you spend on?" required>
+        <input type="number" name="amount" placeholder="Amount" step="0.01" min="0.01" required>
+        <button type="submit">Add</button>
+    </form>
+
+    {% if expenses %}
+        <ul>
+        {% for name, amount in expenses %}
+            <li>{{ name }} - {{ amount }}</li>
+        {% endfor %}
+        </ul>
+        <h3>Total: {{ total }}</h3>
+    {% else %}
+        <p>No expenses yet.</p>
+    {% endif %}
+</body>
+</html>
