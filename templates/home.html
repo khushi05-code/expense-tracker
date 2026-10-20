@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Home · Money Manager{% endblock %}
+{% block content %}
+<header class="page-head"><div><h1>Home</h1><p class="subtitle">Your {{ month }} money at a glance.</p></div><a class="btn" href="{{ url_for('transactions') }}">＋ Add transaction</a></header>
+<section class="stats">
+  <article class="card"><div class="label">Income</div><div class="value income">{{ currency }}{{ '%.2f'|format(income) }}</div><div class="muted">This month</div></article>
+  <article class="card"><div class="label">Expenses</div><div class="value expense">{{ currency }}{{ '%.2f'|format(expenses) }}</div><div class="muted">This month</div></article>
+  <article class="card"><div class="label">Net cash flow</div><div class="value" style="color:{{ 'var(--green)' if net >= 0 else 'var(--red)' }}">{{ currency }}{{ '%.2f'|format(net) }}</div><div class="muted">Income minus expenses</div></article>
+  <article class="card"><div class="label">Transactions</div><div class="value">{{ count }}</div><div class="muted">This month</div></article>
+</section>
+<section class="card" style="margin-bottom:18px"><div class="page-head" style="margin-bottom:14px"><div><h2 style="margin:0;font-size:1.1rem">Your finance sections</h2><p class="subtitle">Open a dedicated page for each part of your finances.</p></div></div>
+  <div class="quick-links">
+    <a class="quick-link" href="{{ url_for('graphs') }}"><strong>Graphs</strong><span class="muted">Explore spending categories and cash flow.</span></a>
+    <a class="quick-link" href="{{ url_for('budgets') }}"><strong>Monthly budgets</strong><span class="muted">Limits, progress bars, and spending alerts.</span></a>
+    <a class="quick-link" href="{{ url_for('transactions') }}"><strong>Transactions</strong><span class="muted">Add, search, and manage income and expenses.</span></a>
+  </div>
+</section>
+<section class="card"><h2 style="margin:0 0 8px;font-size:1.1rem">Budget overview</h2><p class="muted">Your combined monthly category limits are {{ currency }}{{ '%.2f'|format(budget_total) }}.</p><a href="{{ url_for('budgets') }}">Review budgets →</a></section>
+{% endblock %}

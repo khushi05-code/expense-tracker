@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Create account' if mode == 'register' else 'Log in' }} · Money Manager{% endblock %}
+{% block auth_content %}
+<main style="min-height:100vh;display:grid;place-items:center;padding:20px">
+  <section class="card" style="width:min(100%,420px)">
+    <div class="brand" style="margin-bottom:22px"><div class="logo">₹</div><span>Money Manager</span></div>
+    <h1 style="margin:0 0 7px">{{ 'Create your account' if mode == 'register' else 'Welcome back' }}</h1>
+    <p class="muted" style="margin:0 0 20px">{{ 'Set up your private finance account to get started.' if mode == 'register' else 'Log in to view your personal finance dashboard.' }}</p>
+    {% with messages = get_flashed_messages(with_categories=true) %}{% for category, message in messages %}<div class="alert {{ category }}">{{ message }}</div>{% endfor %}{% endwith %}
+    <form method="post" class="stack">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="field"><label for="username">Username</label><input id="username" name="username" minlength="3" maxlength="30" autocomplete="username" required></div>
+      <div class="field"><label for="password">Password</label><input id="password" name="password" type="password" minlength="8" maxlength="128" autocomplete="{{ 'new-password' if mode == 'register' else 'current-password' }}" required></div>
+      <button class="btn" type="submit">{{ 'Create account' if mode == 'register' else 'Log in' }}</button>
+    </form>
+    {% if mode == 'register' %}
+      <p class="muted" style="font-size:.82rem;margin:16px 0 0">Username: 3 to 30 letters, numbers, dots, dashes or underscores. Password: at least 8 characters.</p>
+      <p style="margin:12px 0 0"><a href="{{ url_for('login') }}">Already have an account? Log in</a></p>
+    {% elif allow_registration %}
+      <p style="margin:16px 0 0"><a href="{{ url_for('register') }}">New here? Create an account</a></p>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

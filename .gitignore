@@ -1,2 +1,3 @@
 expenses.db
 __pycache__/
+secret_key.txt

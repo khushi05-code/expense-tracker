@@ -2,6 +2,8 @@
 
 A command-line app to record and view daily expenses.
 
+**Live demo:** https://khushicodes05.pythonanywhere.com
+
 ## Features
 - Add expenses from a web form
 - View all expenses with a running total

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Budgets · Money Manager{% endblock %}
+
+{% block content %}
+<header class="page-head">
+  <div>
+    <h1>Monthly budgets</h1>
+    <p class="subtitle">Set category limits and track your progress.</p>
+  </div>
+</header>
+
+<section class="card">
+  <form method="get" class="inline-form">
+    <div class="field">
+      <label for="monthView">View month</label>
+      <input id="monthView" type="month" name="month" value="{{ month }}" required>
+    </div>
+    <button class="btn" type="submit">View month</button>
+  </form>
+
+  {% for b in progress %}
+  <div class="budget-row">
+    <div class="budget-head">
+      <strong>{{ b.category }}</strong>
+      {% if b.budget %}
+        <span class="muted">
+          {{ currency }}{{ '%.2f'|format(b.spent) }} of
+          {{ currency }}{{ '%.2f'|format(b.budget) }}
+          {% if b.status != 'overspent' %}
+            · {{ currency }}{{ '%.2f'|format(b.remaining) }} left
+          {% endif %}
+        </span>
+      {% else %}
+        <span class="muted">No limit set</span>
+      {% endif %}
+    </div>
+
+    {% if b.budget %}
+    <div class="track" role="progressbar"
+         aria-label="{{ b.category }} budget used"
+         aria-valuemin="0"
+         aria-valuemax="100"
+         aria-valuenow="{{ [b.percentage, 100]|min|round|int }}">
+      <div class="fill {{ b.status }}" style="width: {{ b.bar_percentage }}%"></div>
+    </div>
+    {% endif %}
+
+    <div class="budget-alert {{ b.status }}">{{ b.alert }}</div>
+  </div>
+  {% endfor %}
+</section>
+
+<section class="card" style="margin-top:18px">
+  <h2 style="margin:0 0 6px;font-size:1.1rem">Edit limits for {{ month }}</h2>
+  <p class="muted" style="margin-top:0">
+    Leave a field blank to clear that category's limit.
+  </p>
+
+  <form method="post" class="budget-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="month" value="{{ month }}">
+
+    {% for b in progress %}
+    <div class="field">
+      <label for="budget{{ loop.index }}">{{ b.category }} limit (₹)</label>
+      <input id="budget{{ loop.index }}"
+             type="number"
+             name="budget_{{ b.category }}"
+             min="0.01"
+             step="0.01"
+             value="{{ '%.2f'|format(b.budget) if b.budget else '' }}"
+             placeholder="Amount">
+    </div>
+    {% endfor %}
+
+    <div class="field">
+      <label>&nbsp;</label>
+      <button class="btn" type="submit">Save budgets</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

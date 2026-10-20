@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Graphs · Money Manager{% endblock %}
+{% block content %}
+<header class="page-head"><div><h1>Graphs</h1><p class="subtitle">Visualize your spending and daily cash flow.</p></div>
+  <nav class="periods" aria-label="Graph period">
+    <a class="{{ 'active' if period == 'week' else '' }}" href="{{ url_for('graphs', period='week') }}">Week</a>
+    <a class="{{ 'active' if period == 'month' else '' }}" href="{{ url_for('graphs', period='month') }}">Month</a>
+    <a class="{{ 'active' if period == 'year' else '' }}" href="{{ url_for('graphs', period='year') }}">Year</a>
+  </nav>
+</header>
+<section class="grid-2">
+  <article class="card"><h2 style="margin:0 0 14px;font-size:1.05rem">Expenses by category</h2>{% if category_labels %}<div class="chart"><canvas id="categoryChart"></canvas></div>{% else %}<div class="empty">No expenses in this period yet.</div>{% endif %}</article>
+  <article class="card"><h2 style="margin:0 0 14px;font-size:1.05rem">Income and expenses over time</h2>{% if daily_labels %}<div class="chart"><canvas id="flowChart"></canvas></div>{% else %}<div class="empty">No transactions in this period yet.</div>{% endif %}</article>
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='chart.umd.js') }}"></script>
+<script nonce="{{ csp_nonce() }}">
+const currency = {{ currency|tojson }};
+const labels = {{ category_labels|tojson }};
+const values = {{ category_values|tojson }};
+const days = {{ daily_labels|tojson }};
+const earned = {{ daily_income|tojson }};
+const spent = {{ daily_expenses|tojson }};
+Chart.defaults.color = getComputedStyle(document.body).getPropertyValue("--muted").trim();
+Chart.defaults.borderColor = getComputedStyle(document.body).getPropertyValue("--border").trim();
+const colors = ["#6264e8", "#23a47c", "#f2a93b", "#ec6579", "#4299e1", "#9b70d6", "#49b9c5", "#9aa6b8"];
+const money = v => currency + Number(v).toLocaleString("en-IN", {minimumFractionDigits:2, maximumFractionDigits:2});
+if (labels.length) new Chart(document.getElementById("categoryChart"), {type:"doughnut",data:{labels,datasets:[{data:values,backgroundColor:colors,borderWidth:3,borderColor:getComputedStyle(document.body).getPropertyValue('--card')}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"},tooltip:{callbacks:{label:c=>`${c.label}: ${money(c.raw)}`}}},cutout:"62%"}});
+if (days.length) new Chart(document.getElementById("flowChart"), {type:"line",data:{labels:days,datasets:[{label:"Income",data:earned,borderColor:"#15966a",backgroundColor:"rgba(21,150,106,.12)",fill:true,tension:.3},{label:"Expenses",data:spent,borderColor:"#e45365",backgroundColor:"rgba(228,83,101,.1)",fill:true,tension:.3}]},options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:"index"},plugins:{legend:{position:"bottom"},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${money(c.raw)}`}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>currency+v}}}}});
+</script>
+{% endblock %}

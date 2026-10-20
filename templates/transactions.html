@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Transactions · Money Manager{% endblock %}
+{% block content %}
+<header class="page-head"><div><h1>Transactions</h1><p class="subtitle">Record and manage your income and expenses.</p></div></header>
+<section class="grid-2" style="margin-bottom:18px">
+  <article class="card"><h2 style="margin:0 0 15px;font-size:1.1rem">Add a transaction</h2>
+    <form method="post" class="stack" id="txForm">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="field"><label for="type">Type</label><select id="type" name="type"><option value="expense">Expense</option><option value="income">Income</option></select></div>
+      <div class="field"><label for="name">Description</label><input id="name" name="name" maxlength="150" required placeholder="e.g. Groceries"></div>
+      <div class="field"><label for="amount">Amount (₹)</label><input id="amount" name="amount" type="number" step="0.01" min="0.01" required></div>
+      <div class="field"><label for="date">Date</label><input id="date" name="date" type="date" value="{{ today }}" required></div>
+      <div class="field"><label for="category">Category</label><select id="category" name="category"></select></div>
+      <div class="field"><label for="source">Source / details</label><input id="source" name="source" maxlength="150"></div>
+      <button class="btn" type="submit">Add transaction</button>
+    </form>
+  </article>
+  <article class="card"><div class="table-head"><div><h2 style="margin:0;font-size:1.1rem">Transaction history</h2><p class="muted">Search by description, category, or date.</p></div><input id="search" type="search" placeholder="Search transactions"></div>
+    <div class="rows" id="rows">{% for t in transactions %}<div class="row transaction" data-search="{{ (t['name'] ~ ' ' ~ t['category'] ~ ' ' ~ t['type'] ~ ' ' ~ t['source'] ~ ' ' ~ t['date'])|lower }}">
+      <div><div class="row-title">{{ t['name'] }}</div><div class="row-meta">{{ t['category'] }} · {{ t['date'] }}{% if t['source'] %} · {{ t['source'] }}{% endif %}</div></div>
+      <div style="display:flex;align-items:center;gap:10px"><span class="amount {{ t['type'] }}">{{ '+' if t['type']=='income' else '−' }}{{ currency }}{{ '%.2f'|format(t['amount']) }}</span><form method="post" action="{{ url_for('delete_transaction', transaction_id=t['id']) }}" data-confirm="Delete this transaction?"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="delete" type="submit">Delete</button></form></div>
+    </div>{% else %}<div class="empty">No transactions yet.</div>{% endfor %}</div>
+  </article>
+</section>
+{% endblock %}
+{% block scripts %}
+<script nonce="{{ csp_nonce() }}">
+const cats={income:{{ income_categories|tojson }},expense:{{ expense_categories|tojson }}};
+const type=document.getElementById('type'), category=document.getElementById('category');
+function updateCategories(){category.replaceChildren(...cats[type.value].map(name=>{const option=document.createElement('option');option.value=name;option.textContent=name;return option;}));}
+type.addEventListener('change',updateCategories);updateCategories();
+document.querySelectorAll('form[data-confirm]').forEach(f=>f.addEventListener('submit',e=>{if(!confirm(f.dataset.confirm))e.preventDefault();}));
+document.getElementById('search').addEventListener('input',event=>{const q=event.target.value.trim().toLowerCase();document.querySelectorAll('.transaction').forEach(row=>row.style.display=row.dataset.search.includes(q)?'flex':'none');});
+</script>
+{% endblock %}
